@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Afridi Gold Price Chatbot</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
+  <!--  Font Import -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+</head>
+<body>
+
+  <!-- Chat Widget Container -->
+  <div class="chat-container">
+    
+    <!-- Header -->
+    <div class="chat-header">
+      <div class="bot-info">
+        <div class="bot-avatar"></div>
+        <div class="header-context">
+          <h3>Afridi GoldBot</h3>
+          <small>🟢 Online Now</small>
+        </div>
+      </div>
+       </div>
+
+    <!-- Chat Box -->
+    <div class="chat-box" id="chat-box">
+      <div class="message bot">
+        Hello! 💬 Ask me about <b>gold prices</b> in Pakistan 🇵🇰
+      </div>
+    </div>
+
+    <!-- Input Area -->
+    <div class="chat-input">
+      <input type="text" id="user-input" placeholder="Ask anything about gold..." />
+      <button id="send-btn">➤</button>
+    </div>
+
+  </div>
+
+  <!--  Load marked.js first (non-module version) -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+  <!-- Then load your chatbot logic -->
+  <script src="{{ url_for('static', filename='index2.js') }}"></script>
+
+</body>
+</html>
