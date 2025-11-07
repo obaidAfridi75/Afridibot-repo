@@ -1,4 +1,6 @@
 Flask
-gunicorn
-flask-cors
+Flask-Cors
 python-dotenv
+requests
+google-generativeai
+gunicorn
