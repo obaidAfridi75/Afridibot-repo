@@ -9,7 +9,7 @@ import os
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS
+CORS(app, origins="*")   # Enable CORS
 
 # Secret key for session (still needed if you use session for other things)
 app.secret_key = os.urandom(24)
