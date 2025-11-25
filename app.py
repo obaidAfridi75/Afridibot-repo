@@ -9,7 +9,7 @@ import os
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app, origins="*")   # Enable CORS
+CORS(app)  # Enable CORS
 
 # Secret key for session (still needed if you use session for other things)
 app.secret_key = os.urandom(24)
@@ -35,13 +35,21 @@ def chat():
         user_message = data.get("message", "").strip()
 
         #  MOVE THE DETECTION CODE RIGHT HERE
-        price_keywords = ["gold price", "gold rate", "rate of gold", "price of gold", "24k", "22k", "tola rate", "gram rate", "sona rate", "سونے", "سونا"]
+        price_keywords = [
+    "gold price", "gold rate", "rate of gold", "price of gold", 
+    "24k", "22k", "21k", "24 karat", "22 karat", "21 karat",
+    "tola rate", "gram rate", "sona rate", 
+    "سونے", "سونا", "kitna", "کتنے",
+    "per tola", "per gram", "tola price", "gram price",
+    "karat", "carat", "karet"  
+]
         is_price_query = any(keyword in user_message.lower() for keyword in price_keywords)
 
         general_gold_keywords = ["gold mine", "gold mining", "where gold", "how to mine", "gold reserve", "gold production"]
         is_general_gold = any(keyword in user_message.lower() for keyword in general_gold_keywords)
 
-        is_gold_related = is_price_query and not is_general_gold
+        is_gold_related = (is_price_query or any(keyword in user_message.lower() for keyword in ["gold", "sona", "سونے", "سونا"])) and not is_general_gold
+       
         #  END OF DETECTION CODE
 
         if not user_message:
@@ -80,7 +88,7 @@ def chat():
                     gold_price_usd = metal_data.get("rates", {}).get("USD")
                     print(f" Gold price fetched: ${gold_price_usd} per ounce")
                 else:
-                    print(f"❌ Metal API error: {metal_data.get('error')}")
+                    print(f" Metal API error: {metal_data.get('error')}")
                     
             except requests.RequestException as e:
                 print(f"🔧 Metals API request failed: {str(e)}")
@@ -187,15 +195,47 @@ def chat():
                     city_name = city
                     break
 
-            reply_text = (
-                f" Today's Gold Rates in {city_name} (approx):\n\n"
-                f" 24K: {price_pkr:.2f} PKR per gram\n"
-                f" 22K: {(price_pkr*0.9167):.2f} PKR per gram\n"
-                f" 21K: {(price_pkr*0.875):.2f} PKR per gram\n\n"
-                f" Gold Price: ${gold_price_usd:,.2f} per ounce\n"
-                f" Note: Rates may slightly vary across cities and jewelers."
-            )
-            return jsonify({"reply": reply_text})
+            # Check for specific queries first
+            if "24 karat" in user_message.lower() and "tola" in user_message.lower():
+                reply_text = (
+                    f" 24 Karat Gold Price in {city_name} Today:\n\n"
+                    f"**Per Tola (11.66g):** {(price_pkr * 11.66):,.0f} PKR\n\n"
+                    f"**Other Purities:**\n"
+                    f"• 22K: {(price_pkr * 0.9167 * 11.66):,.0f} PKR per tola\n"
+                    f"• 21K: {(price_pkr * 0.875 * 11.66):,.0f} PKR per tola\n\n"
+                    f"Gold Price: ${gold_price_usd:,.2f} per ounce\n"
+                    f" Note: Rates may vary across cities and jewelers."
+                )
+                return jsonify({"reply": reply_text})
+
+            elif "tola" in user_message.lower():
+                reply_text = (
+                    f" Gold Rates per Tola in {city_name}:\n\n"
+                    f"**Per Tola (11.66g):**\n"
+                    f"24K: {(price_pkr * 11.66):,.0f} PKR\n"
+                    f"22K: {(price_pkr * 0.9167 * 11.66):,.0f} PKR\n"
+                    f"21K: {(price_pkr * 0.875 * 11.66):,.0f} PKR\n\n"
+                    f"Gold Price: ${gold_price_usd:,.2f} per ounce\n"
+                    f" Note: Rates may vary across cities and jewelers."
+                )
+                return jsonify({"reply": reply_text})
+
+            else:
+                # Default response (your original format)
+                reply_text = (
+                    f" Today's Gold Rates in {city_name}:\n\n"
+                    f"**Per Gram:**\n"
+                    f"24K: {price_pkr:.2f} PKR\n"
+                    f"22K: {(price_pkr*0.9167):.2f} PKR\n"
+                    f"21K: {(price_pkr*0.875):.2f} PKR\n\n"
+                    f"**Per Tola (11.66g):**\n"
+                    f"24K: {(price_pkr * 11.66):,.0f} PKR\n"
+                    f"22K: {(price_pkr * 0.9167 * 11.66):,.0f} PKR\n"
+                    f"21K: {(price_pkr * 0.875 * 11.66):,.0f} PKR\n\n"
+                    f"Gold Price: ${gold_price_usd:,.2f} per ounce\n"
+                    f" Note: Rates may vary across cities and jewelers."
+                )
+                return jsonify({"reply": reply_text})
 
         elif is_gold_related:
             reply_text = (
@@ -205,9 +245,7 @@ def chat():
             )
             return jsonify({"reply": reply_text})
 
-      
         # Non-gold queries: Gemini AI fallback
-       
         prompt = f"User asked: {user_message}\n\nAnswer clearly and naturally."
 
         response = client.models.generate_content(
